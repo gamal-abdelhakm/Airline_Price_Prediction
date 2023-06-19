@@ -1,10 +1,11 @@
+Python==3.10.9
 joblib
 numpy
 pandas
 streamlit
 matplotlib
 seaborn
-scikit-learn
+streamlit==1.14.0
 datasist
 xgboost
 lightgbm
