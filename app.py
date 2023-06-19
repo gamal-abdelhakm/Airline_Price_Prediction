@@ -43,7 +43,7 @@ def main():
                 inputs[field] = selected_time.strftime('%H')
         elif isinstance(values, tuple):  # Numerical variable
             with col1 if i % 2 == 0 else col2:
-                inputs[field] = st.slider(field, values[0], values[1], 4)
+                inputs[field] = st.slider(field, 0, 24, 4)
         else:  # Categorical variable
             with col1 if i % 2 == 0 else col2:
                 inputs[field] = st.selectbox(field, values)
