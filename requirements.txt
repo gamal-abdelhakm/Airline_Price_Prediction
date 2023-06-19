@@ -1,4 +1,3 @@
-Python==3.10.9
 joblib
 numpy
 pandas
