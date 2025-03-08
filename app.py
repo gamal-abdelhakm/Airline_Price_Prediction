@@ -4,8 +4,10 @@ from sklearn.pipeline import Pipeline
 import joblib
 
 Model = joblib.load("Model.pkl")
+
 # Load the preprocessed data
 data = pd.read_csv('preprocessed_data.csv')
+
 # Define the input fields
 input_fields = {
     'Airline': data['Airline'].unique(),
@@ -63,4 +65,3 @@ def predict_price(input_data):
     return prediction[0]
 if name == 'main':
     main()
-
