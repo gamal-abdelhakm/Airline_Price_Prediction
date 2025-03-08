@@ -1,10 +1,11 @@
 joblib
-numpy
 pandas
 streamlit
 matplotlib
 seaborn
-scikit-learn == 1.2.1
 datasist
 xgboost
 lightgbm
+numpy==1.23.5 
+scipy==1.10.1 
+scikit-learn==1.0.2
