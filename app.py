@@ -57,7 +57,7 @@ def main():
         
         # Date and departure time
         with col2:
-            st.markdown("### Date & Departure Time")
+            st.markdown("### Date & Time")
             
             # Journey date
             selected_date = st.date_input('Journey Date', 
@@ -70,10 +70,6 @@ def main():
             # Departure time
             dep_time = st.time_input('Departure Time', datetime.time(9, 0))
             inputs['Dep_Hour'] = dep_time.hour
-            
-        # Duration and Arrival Time
-        with col3:
-            st.markdown("### Duration & Arrival Time")
             
             # Duration slider
             duration = st.slider('Flight Duration (hours)', 
@@ -94,6 +90,8 @@ def main():
             
             inputs['Arrival_Hour'] = arrival_hour
             
+        # Duration and Arrival Time
+        with col3:        
             # Predict button with improved styling
             if st.button('Predict Price', type="primary", use_container_width=True):
                 with st.spinner('Calculating price...'):
