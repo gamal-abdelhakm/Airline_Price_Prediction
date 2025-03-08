@@ -1,6 +1,5 @@
 joblib
 pandas
-streamlit
 matplotlib
 seaborn
 datasist
