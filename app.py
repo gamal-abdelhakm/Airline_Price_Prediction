@@ -91,7 +91,8 @@ def main():
             inputs['Arrival_Hour'] = arrival_hour
             
         # Duration and Arrival Time
-        with col3:        
+        with col3:   
+            st.markdown("### Prediction")
             # Predict button with improved styling
             if st.button('Predict Price', type="primary", use_container_width=True):
                 with st.spinner('Calculating price...'):
