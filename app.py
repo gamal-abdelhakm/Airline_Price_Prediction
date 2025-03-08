@@ -37,8 +37,6 @@ def main():
     st.write('Enter your flight details below to get an estimated price.')
     
     with st.container():
-        st.subheader('Flight Details')
-        
         # Create two columns for the form
         col1, col2 = st.columns(2)
         
@@ -114,10 +112,6 @@ def main():
                     
                 except Exception as e:
                     st.error(f"Error making prediction: {e}")
-        
-        # Add option to reset form
-        if st.button('Reset Form', use_container_width=True):
-            st.experimental_rerun()
 
 def predict_price(input_data):
     # Perform prediction using the trained model
