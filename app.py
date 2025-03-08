@@ -1,67 +1,128 @@
 import pandas as pd
 import streamlit as st
-from sklearn.pipeline import Pipeline
 import joblib
+import datetime
 
-Model = joblib.load("Model.pkl")
+# Load the model and preprocessed data
+try:
+    Model = joblib.load("Model.pkl")
+    data = pd.read_csv('preprocessed_data.csv')
+    
+    # Define the input fields
+    input_fields = {
+        'Airline': data['Airline'].unique(),
+        'Source': data['Source'].unique(),
+        'Destination': data['Destination'].unique(),
+        'Total_Stops': data['Total_Stops'].unique(),
+        'Journey_Date': None,  # Will be handled with date_input
+        'Dep_Time': None,      # Will be handled with time_input
+        'Arrival_Time': None,  # Will be handled with time_input
+        'Duration_Hours': (max(1, data['Duration_Hours'].min()), min(24, data['Duration_Hours'].max()))
+    }
+    
+    # Add page configuration
+    st.set_page_config(
+        page_title="Flight Price Predictor",
+        page_icon="✈️",
+        layout="wide"
+    )
 
-# Load the preprocessed data
-data = pd.read_csv('preprocessed_data.csv')
-
-# Define the input fields
-input_fields = {
-    'Airline': data['Airline'].unique(),
-    'Source': data['Source'].unique(),
-    'Destination': data['Destination'].unique(),
-    'Total_Stops': data['Total_Stops'].unique(),
-    'Journey_Date': (data['Journey_Day'].min(), data['Journey_Day'].max()),
-    'Dep_Hour': (data['Dep_Hour'].min(), data['Dep_Hour'].max()),
-    'Arrival_Hour': (data['Arrival_Hour'].min(), data['Arrival_Hour'].max()),
-    'Duration_Hours': (data['Duration_Hours'].min(), data['Duration_Hours'].max())
-}
-
-# Set page configuration
-st.set_page_config(
-    page_title="Flight Price Predictor",
-    page_icon="✈️",
-    layout="wide"
-)
+except Exception as e:
+    st.error(f"Error loading model or data: {e}")
+    st.stop()
 
 def main():
-    st.title('Flight Price Prediction')
-    st.write('Please enter the following details for flight price prediction:')
-    # Create input fields
-    inputs = {}
-    col1, col2 = st.columns(2)  # Split the fields into two columns
-    for i, (field, values) in enumerate(input_fields.items()):
-        if field == 'Journey_Date':  # Journey_Day selector
-            with col1 if i % 2 == 0 else col2:
-                selected_date = st.date_input(field)
-                inputs['Journey_Day'] = selected_date.day
-                inputs['Journey_Month'] = selected_date.month
-        elif field == 'Dep_Hour': 
-            with col1 if i % 2 == 0 else col2:
-                selected_time = st.time_input(field)
-                inputs[field] = selected_time.strftime('%H')
-        elif field == 'Arrival_Hour':
-            with col1 if i % 2 == 0 else col2:
-                inputs[field] = selected_time.strftime('%H')
-        elif isinstance(values, tuple):  # Numerical variable
-            with col1 if i % 2 == 0 else col2:
-                inputs[field] = st.slider(field, 0, 24, 4)
-        else:  # Categorical variable
-            with col1 if i % 2 == 0 else col2:
-                inputs[field] = st.selectbox(field, values)
-    inputs['Arrival_Hour'] = str(int(inputs['Arrival_Hour']) + int(inputs['Duration_Hours']))
-    # Predict button
-    with col1:
-        if st.button('Predict Price'):
-            input_data = pd.DataFrame(inputs, index=[0])
-            prediction = predict_price(input_data)
-            st.success(f'The predicted price is {prediction:.2f} $')
+    # Title and description
+    st.title('✈️ Flight Price Prediction')
+    st.write('Enter your flight details below to get an estimated price.')
+    
+    with st.container():
+        st.subheader('Flight Details')
+        
+        # Create two columns for the form
+        col1, col2 = st.columns(2)
+        
+        # Initialize inputs dictionary
+        inputs = {}
+        
+        # Route information
+        with col1:
+            st.markdown("### Route Information")
+            inputs['Airline'] = st.selectbox('Airline', input_fields['Airline'])
+            inputs['Source'] = st.selectbox('From', input_fields['Source'])
+            
+            # Add validation to prevent same source and destination
+            remaining_destinations = [dest for dest in input_fields['Destination'] if dest != inputs['Source']]
+            inputs['Destination'] = st.selectbox('To', remaining_destinations)
+            
+            inputs['Total_Stops'] = st.selectbox('Number of Stops', input_fields['Total_Stops'])
+        
+        # Time information
+        with col2:
+            st.markdown("### Time Information")
+            
+            # Journey date
+            selected_date = st.date_input('Journey Date', 
+                                        min_value=datetime.date.today(),
+                                        value=datetime.date.today())
+            
+            inputs['Journey_Day'] = selected_date.day
+            inputs['Journey_Month'] = selected_date.month
+            
+            # Departure time
+            dep_time = st.time_input('Departure Time', datetime.time(9, 0))
+            inputs['Dep_Hour'] = dep_time.hour
+            
+            # Duration slider
+            duration = st.slider('Flight Duration (hours)', 
+                                float(input_fields['Duration_Hours'][0]), 
+                                float(input_fields['Duration_Hours'][1]), 
+                                step=0.5)
+            inputs['Duration_Hours'] = duration
+            
+            # Calculate arrival time
+            arrival_hour = (dep_time.hour + int(duration)) % 24
+            arrival_minute = dep_time.minute + int((duration % 1) * 60)
+            if arrival_minute >= 60:
+                arrival_hour = (arrival_hour + 1) % 24
+                arrival_minute = arrival_minute % 60
+                
+            arrival_time = datetime.time(arrival_hour, arrival_minute)
+            st.info(f"Calculated Arrival Time: {arrival_time.strftime('%H:%M')}")
+            
+            inputs['Arrival_Hour'] = arrival_hour
+        
+        # Predict button with improved styling
+        if st.button('Predict Price', type="primary", use_container_width=True):
+            with st.spinner('Calculating price...'):
+                try:
+                    input_data = pd.DataFrame(inputs, index=[0])
+                    
+                    # Add debug information in expander
+                    with st.expander("Debug Information"):
+                        st.write("Input data for prediction:")
+                        st.write(input_data)
+                    
+                    prediction = predict_price(input_data)
+                    
+                    # Display prediction with more emphasis
+                    st.markdown("### Price Prediction")
+                    st.markdown(f"<h2 style='text-align: center; color: #1E88E5;'>${prediction:.2f}</h2>", unsafe_allow_html=True)
+                    
+                    # Add confidence disclaimer
+                    st.info("This is an estimated price based on historical data. Actual prices may vary.")
+                    
+                except Exception as e:
+                    st.error(f"Error making prediction: {e}")
+        
+        # Add option to reset form
+        if st.button('Reset Form', use_container_width=True):
+            st.experimental_rerun()
+
 def predict_price(input_data):
     # Perform prediction using the trained model
     prediction = Model.predict(input_data)
     return prediction[0]
-if name == 'main':
+
+if __name__ == '__main__':
     main()
