@@ -37,8 +37,8 @@ def main():
     st.write('Enter your flight details below to get an estimated price.')
     
     with st.container():
-        # Create two columns for the form
-        col1, col2 = st.columns(2)
+        # Create three columns for the form
+        col1, col2, col3 = st.columns(3)
         
         # Initialize inputs dictionary
         inputs = {}
@@ -55,9 +55,9 @@ def main():
             
             inputs['Total_Stops'] = st.selectbox('Number of Stops', input_fields['Total_Stops'])
         
-        # Time information
+        # Date and departure time
         with col2:
-            st.markdown("### Time Information")
+            st.markdown("### Date & Departure Time")
             
             # Journey date
             selected_date = st.date_input('Journey Date', 
@@ -70,6 +70,10 @@ def main():
             # Departure time
             dep_time = st.time_input('Departure Time', datetime.time(9, 0))
             inputs['Dep_Hour'] = dep_time.hour
+            
+        # Duration and Arrival Time
+        with col3:
+            st.markdown("### Duration & Arrival Time")
             
             # Duration slider
             duration = st.slider('Flight Duration (hours)', 
@@ -89,29 +93,29 @@ def main():
             st.info(f"Calculated Arrival Time: {arrival_time.strftime('%H:%M')}")
             
             inputs['Arrival_Hour'] = arrival_hour
-        
-        # Predict button with improved styling
-        if st.button('Predict Price', type="primary", use_container_width=True):
-            with st.spinner('Calculating price...'):
-                try:
-                    input_data = pd.DataFrame(inputs, index=[0])
-                    
-                    # Add debug information in expander
-                    with st.expander("Debug Information"):
-                        st.write("Input data for prediction:")
-                        st.write(input_data)
-                    
-                    prediction = predict_price(input_data)
-                    
-                    # Display prediction with more emphasis
-                    st.markdown("### Price Prediction")
-                    st.markdown(f"<h2 style='text-align: center; color: #1E88E5;'>${prediction:.2f}</h2>", unsafe_allow_html=True)
-                    
-                    # Add confidence disclaimer
-                    st.info("This is an estimated price based on historical data. Actual prices may vary.")
-                    
-                except Exception as e:
-                    st.error(f"Error making prediction: {e}")
+            
+            # Predict button with improved styling
+            if st.button('Predict Price', type="primary", use_container_width=True):
+                with st.spinner('Calculating price...'):
+                    try:
+                        input_data = pd.DataFrame(inputs, index=[0])
+                        
+                        # Add debug information in expander
+                        with st.expander("Debug Information"):
+                            st.write("Input data for prediction:")
+                            st.write(input_data)
+                        
+                        prediction = predict_price(input_data)
+                        
+                        # Display prediction with more emphasis
+                        st.markdown("### Price Prediction")
+                        st.markdown(f"<h2 style='text-align: center; color: #1E88E5;'>${prediction:.2f}</h2>", unsafe_allow_html=True)
+                        
+                        # Add confidence disclaimer
+                        st.info("This is an estimated price based on historical data. Actual prices may vary.")
+                        
+                    except Exception as e:
+                        st.error(f"Error making prediction: {e}")
 
 def predict_price(input_data):
     # Perform prediction using the trained model
